@@ -1,0 +1,36 @@
+{
+  "title": "XOR dataset",
+  "summary": "XOR dataset. ",
+  "modelCategory": "binary_classification",
+  "schemaVersion": 1.0,
+  "inputDataFormat": "CSV",
+  "id": {
+    "name": "id",
+    "description": "A unique identifier for each record in the dataset."
+  },
+  "target": {
+    "name": "z",
+    "description": "A binary variable indicating whether the answer is 0 or 1.",
+    "classes": [
+      "0",
+      "1"
+    ]
+  },
+  "features": [
+    {
+      "name": "x",
+      "description": "x",
+      "dataType": "NUMERIC",
+      "example": 1,
+      "nullable": false
+    },
+    {
+      "name": "y",
+      "description": "y",
+      "dataType": "NUMERIC",
+      "example": 1,
+      "nullable": false
+    }
+
+  ]
+}
