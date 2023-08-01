@@ -56,6 +56,7 @@ class Classifier:
         """
 
         self.model.fit(train_input, train_target)
+        self._is_trained = True
 
     def predict(self, inputs: pd.DataFrame) -> np.ndarray:
         """Predict class labels for the given data.

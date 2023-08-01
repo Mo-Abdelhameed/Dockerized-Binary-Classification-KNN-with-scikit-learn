@@ -6,9 +6,9 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
          dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements/requirements.txt /opt/
+COPY ./requirements/requirements.txt /opt/
 RUN pip3 install --no-cache-dir -r /opt/requirements.txt
-COPY . ./opt/src
+COPY src ./opt/src
 COPY ./entry_point.sh /opt/
 RUN chmod +x /opt/entry_point.sh
 

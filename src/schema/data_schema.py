@@ -127,6 +127,17 @@ class BinaryClassificationSchema:
         )
 
     @property
+    def features(self) -> List[str]:
+        """
+            Gets the names of the features.
+
+            Returns:
+                List[str]: List of feature names.
+        """
+
+        return [feature['name'] for feature in self.schema['features']]
+
+    @property
     def target(self) -> str:
         """
         Gets the name of the target field.
@@ -205,7 +216,7 @@ class BinaryClassificationSchema:
         return allowed_values
 
     def get_allowed_values_for_categorical_feature(
-        self, feature_name: str
+            self, feature_name: str
     ) -> List[str]:
         """
         Gets the allowed values for a single categorical feature.
@@ -377,5 +388,3 @@ def load_saved_schema(save_dir_path: str) -> BinaryClassificationSchema:
         print("no such file")
         raise FileNotFoundError(f"No such file or directory: '{file_path}'")
     return joblib.load(file_path)
-
-

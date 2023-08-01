@@ -1,1 +1,47 @@
-print('This is the training file!')
+from KNN_Classifier import Classifier
+from utils import read_csv_in_directory, read_json_as_dict
+from config import paths
+from logger import get_logger, log_error
+from preprocessing.pipeline import create_pipeline
+from schema.data_schema import load_json_data_schema, save_schema
+
+logger = get_logger(task_name="train")
+
+
+def run_training():
+    try:
+        logger.info("Starting training...")
+
+        logger.info("Loading and saving schema...")
+        data_schema = load_json_data_schema(paths.INPUT_SCHEMA_DIR)
+        save_schema(schema=data_schema, save_dir_path=paths.SAVED_SCHEMA_DIR_PATH)
+
+        logger.info("Loading training data...")
+        train_data = read_csv_in_directory(paths.TRAIN_DIR)
+
+        features = data_schema.features
+        target = data_schema.target
+        x_train = train_data[features]
+        y_train = train_data[target]
+        pipeline = create_pipeline(x_train, data_schema)
+
+        for stage, column in pipeline:
+            stage(x_train, column)
+
+        model = Classifier()
+        model.fit(x_train, y_train)
+        model.save(paths.MODEL_ARTIFACTS_PATH)
+        logger.info('Model saved!')
+
+    except Exception as exc:
+        err_msg = "Error occurred during training."
+        # Log the error
+        logger.error(f"{err_msg} Error: {str(exc)}")
+        # Log the error to the separate logging file
+        log_error(message=err_msg, error=exc, error_fpath=paths.TRAIN_ERROR_FILE_PATH)
+        # re-raise the error
+        raise Exception(f"{err_msg} Error: {str(exc)}") from exc
+
+
+if __name__ == "__main__":
+    run_training()
