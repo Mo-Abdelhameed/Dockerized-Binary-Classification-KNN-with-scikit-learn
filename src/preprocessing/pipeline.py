@@ -18,7 +18,8 @@ def create_pipeline(input_data: pd.DataFrame, schema: BinaryClassificationSchema
                 (drop_all_nan_features, None),
                 (drop_duplicate_features, None),
                 (drop_mostly_missing_columns, None),
-                (indicate_missing_values, None)]
+                (indicate_missing_values, None),
+                ]
     numeric_features = schema.numeric_features
     cat_features = schema.categorical_features
     for f in numeric_features:

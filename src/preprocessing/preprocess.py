@@ -4,12 +4,15 @@ import pandas as pd
 from typing import Any, Dict
 from schema.data_schema import BinaryClassificationSchema, load_json_data_schema
 from sklearn.preprocessing import StandardScaler
+from feature_engine.encoding import OneHotEncoder
 from scipy.stats import zscore
-from joblib import dump
+from joblib import dump, load
 from config import paths
 
 
-def impute_numeric(input_data: pd.DataFrame, column: Any, value='median') -> pd.DataFrame:
+def impute_numeric(input_data: pd.DataFrame, column: Any, value='median', schema: BinaryClassificationSchema = None, target: pd.Series = None) -> pd.DataFrame:
+    if column not in input_data.columns:
+        return input_data
     if value == 'mean':
         input_data[column].fillna(value=input_data[column].mean(), inplace=True)
     elif value == 'median':
@@ -27,7 +30,10 @@ def indicate_missing_values(input_data: pd.DataFrame) -> pd.DataFrame:
 
 
 def impute_categorical(input_data: pd.DataFrame, column: Any) -> pd.DataFrame:
-    if percentage_of_missing_values(input_data)[column] > 10:
+    if column not in input_data.columns:
+        return input_data
+    perc = percentage_of_missing_values(input_data)
+    if column in perc and perc[column] > 10:
         input_data[column].fillna(value='Missing', inplace=True)
     else:
         input_data[column].fillna(value=input_data[column].mode().iloc[0], inplace=True)
@@ -52,18 +58,41 @@ def drop_duplicate_features(input_data: pd.DataFrame) -> pd.DataFrame:
     return input_data.T.drop_duplicates().T
 
 
-def encode(input_data: pd.DataFrame, schema: BinaryClassificationSchema) -> pd.DataFrame:
-    encodings = []
+def encode(input_data: pd.DataFrame, schema: BinaryClassificationSchema, encoder=None) -> pd.DataFrame:
+    # encodings = []
+    # to_be_dropped = []
+    # cat_features = schema.categorical_features
+    # if not cat_features:
+    #     return input_data
+    # for f in cat_features:
+    #     if f not in input_data.columns:
+    #         continue
+    #     number_of_allowed_values = len(schema.allowed_categorical_values[f])
+    #     if number_of_allowed_values == 2:
+    #         encoding = pd.DataFrame(pd.get_dummies(input_data[f], prefix=f, drop_first=True))
+    #     else:
+    #         encoding = pd.get_dummies(input_data[f], prefix=f, drop_first=False)
+    #     to_be_dropped.append(f)
+    #     encodings.append(encoding)
+    # encodings.append(input_data)
+    # input_data = pd.concat(encodings, axis='columns')
+    # input_data.drop(to_be_dropped, axis=1, inplace=True)
+    # to_be_dropped = input_data.filter(like='_Missing').columns
+    # input_data.drop(to_be_dropped, axis=1, inplace=True)
+    # return input_data
     cat_features = schema.categorical_features
     if not cat_features:
         return input_data
-    for f in cat_features:
-        number_of_allowed_values = len(schema.allowed_categorical_values[f])
-        drop_first = number_of_allowed_values == 2
-        encoding = pd.get_dummies(input_data[f], prefix=f, drop_first=drop_first)
-        input_data.drop(f, axis='columns', inplace=True)
-        encodings.append(encoding)
-    return pd.concat(input_data + encodings, axis='columns')
+    if encoder is not None:
+        encoder = load(paths.ENCODER_FILE)
+        input_data = encoder.transform(input_data)
+        return input_data
+
+    encoder = OneHotEncoder()
+    encoder.fit(input_data)
+    input_data = encoder.transform(input_data)
+    dump(encoder, paths.ENCODER_FILE)
+    return input_data
 
 
 def drop_mostly_missing_columns(input_data: pd.DataFrame, thresh=0.6) -> pd.DataFrame:
@@ -71,8 +100,16 @@ def drop_mostly_missing_columns(input_data: pd.DataFrame, thresh=0.6) -> pd.Data
     return input_data.dropna(axis=1, thresh=threshold)
 
 
+def cast_data(input_data: pd.DataFrame):
+    input_data = input_data.convert_dtypes()
+    return input_data
+
+
 def normalize(input_data: pd.DataFrame, schema: BinaryClassificationSchema, scaler=None) -> pd.DataFrame:
     numeric_features = schema.numeric_features
+    if not numeric_features:
+        return input_data
+    numeric_features = list(set(numeric_features).intersection(input_data.columns))
     if scaler is None:
         scaler = StandardScaler()
         input_data[numeric_features] = scaler.fit_transform(input_data[numeric_features])
@@ -82,14 +119,26 @@ def normalize(input_data: pd.DataFrame, schema: BinaryClassificationSchema, scal
     return input_data
 
 
-def remove_outliers_zscore(input_data: pd.DataFrame, column: str) -> pd.DataFrame:
+def remove_outliers_zscore(input_data: pd.DataFrame, column: str, target: pd.Series = None) -> pd.DataFrame:
+    if column not in input_data.columns:
+        return input_data, target
+    input_data[column] = input_data[column].astype(np.float64)
     threshold = 3
     z_scores = np.abs(zscore(input_data[column]))
     condition = z_scores < threshold
-    return input_data[condition]
+    after_removal = input_data[condition]
+    if (after_removal.shape[0] / input_data.shape[0]) < 0.1:
+        if target is not None:
+            return input_data[condition], target[condition]
+        else:
+            return input_data[condition], None
+    else:
+        return input_data, target
 
 
 def remove_outliers_iqr(input_data: pd.DataFrame, column: str) -> pd.DataFrame:
+    if column not in input_data.columns:
+        return input_data
     q1 = input_data[column].quantile(0.25)
     q3 = input_data[column].quantile(0.75)
     iqr = q3 - q1

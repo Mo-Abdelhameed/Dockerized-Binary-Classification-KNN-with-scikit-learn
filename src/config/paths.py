@@ -28,6 +28,8 @@ MODEL_ARTIFACTS_PATH = os.path.join(MODEL_PATH, "artifacts")
 
 SCALER_FILE = os.path.join(MODEL_ARTIFACTS_PATH, 'scaler.joblib')
 
+ENCODER_FILE = os.path.join(MODEL_ARTIFACTS_PATH, 'encoder.joblib')
+
 # Path to saved schema in artifacts directory
 SAVED_SCHEMA_DIR_PATH = os.path.join(MODEL_ARTIFACTS_PATH, "schema")
 # Name of the preprocessing pipeline file

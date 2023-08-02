@@ -67,15 +67,20 @@ def run_batch_predictions() -> None:
     logger.info("Transforming the data...")
     for stage, column in pipeline:
         if column is None:
-            x_test = stage(x_test)
+                x_test = stage(x_test)
         elif column == 'schema':
             if stage.__name__ == 'normalize':
                 scaler = load(paths.SCALER_FILE)
                 x_test = normalize(x_test, data_schema, scaler)
+            elif stage.__name__ == 'encode':
+                x_test = stage(x_test, data_schema, encoder='predict')
             else:
                 x_test = stage(x_test, data_schema)
         else:
-            x_test = stage(x_test, column)
+            if stage.__name__ == 'remove_outliers_zscore':
+                    x_test, _ = stage(x_test, column)
+            else:
+                    x_test = stage(x_test, column)
 
     logger.info("Making predictions...")
     predictions_arr = Classifier.predict_with_model(model, x_test, return_probs=True)

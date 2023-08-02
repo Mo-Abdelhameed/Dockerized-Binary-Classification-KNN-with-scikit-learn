@@ -4,6 +4,7 @@ from config import paths
 from logger import get_logger, log_error
 from schema.data_schema import load_json_data_schema, save_schema
 from preprocessing.pipeline import create_pipeline
+from preprocessing.preprocess import percentage_of_missing_values
 
 logger = get_logger(task_name="train")
 
@@ -18,7 +19,6 @@ def run_training():
 
         logger.info("Loading training data...")
         train_data = read_csv_in_directory(paths.TRAIN_DIR)
-
         features = data_schema.features
         target = data_schema.target
         x_train = train_data[features]
@@ -30,8 +30,10 @@ def run_training():
             elif column == 'schema':
                 x_train = stage(x_train, data_schema)
             else:
-                x_train = stage(x_train, column)
-
+                if stage.__name__ == 'remove_outliers_zscore':
+                    x_train, y_train = stage(x_train, column, target=y_train)
+                else:
+                    x_train = stage(x_train, column)
         model = Classifier()
         model.fit(x_train, y_train)
         model.save(paths.PREDICTOR_DIR_PATH)
