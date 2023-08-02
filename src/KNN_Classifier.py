@@ -22,7 +22,7 @@ class Classifier:
     model_name = 'knn_binary_classifier'
 
     def __init__(self,
-                 n_neighbors: Optional[int] = 3,
+                 n_neighbors: Optional[int] = 21,
                  weights: Optional[str] = 'uniform'
                  ):
         """Construct a new Random Forest binary classifier.
