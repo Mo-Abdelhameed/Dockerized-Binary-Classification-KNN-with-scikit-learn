@@ -13,5 +13,10 @@ COPY ./entry_point.sh /opt/
 RUN chmod +x /opt/entry_point.sh
 
 WORKDIR /opt/src
+ENV PYTHONUNBUFFERED=TRUE
+ENV PYTHONDONTWRITEBYTECODE=TRUE
+ENV PATH="/opt/src:${PATH}"
+# set non-root user
+USER 1000
 
 ENTRYPOINT ["/opt/entry_point.sh"]
