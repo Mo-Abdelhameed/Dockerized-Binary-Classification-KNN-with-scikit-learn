@@ -1,9 +1,9 @@
 from KNN_Classifier import Classifier
-from utils import read_csv_in_directory, read_json_as_dict
+from utils import read_csv_in_directory
 from config import paths
 from logger import get_logger, log_error
-from preprocessing.pipeline import create_pipeline
 from schema.data_schema import load_json_data_schema, save_schema
+from preprocessing.pipeline import create_pipeline
 
 logger = get_logger(task_name="train")
 
@@ -24,13 +24,17 @@ def run_training():
         x_train = train_data[features]
         y_train = train_data[target]
         pipeline = create_pipeline(x_train, data_schema)
-
         for stage, column in pipeline:
-            stage(x_train, column)
+            if column is None:
+                x_train = stage(x_train)
+            elif column == 'schema':
+                x_train = stage(x_train, data_schema)
+            else:
+                x_train = stage(x_train, column)
 
         model = Classifier()
         model.fit(x_train, y_train)
-        model.save(paths.MODEL_ARTIFACTS_PATH)
+        model.save(paths.PREDICTOR_DIR_PATH)
         logger.info('Model saved!')
 
     except Exception as exc:

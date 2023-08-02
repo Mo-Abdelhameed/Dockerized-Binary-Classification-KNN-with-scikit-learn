@@ -1,0 +1,1 @@
+Error occurred during training. Error: name 'TRAIN_DIR' is not defined

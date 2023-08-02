@@ -21,6 +21,8 @@ TRAIN_DIR = os.path.join(DATA_DIR, "training")
 # Path to test directory inside data directory
 TEST_DIR = os.path.join(DATA_DIR, "testing")
 
+SCALER_FILE = os.path.join(TRAIN_DIR, 'scaler.joblib')
+
 # Path to model directory
 MODEL_PATH = os.path.join(MODEL_INPUTS_OUTPUTS, "model")
 # Path to artifacts directory inside model directory
