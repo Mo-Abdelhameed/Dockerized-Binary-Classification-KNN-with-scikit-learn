@@ -59,27 +59,6 @@ def drop_duplicate_features(input_data: pd.DataFrame) -> pd.DataFrame:
 
 
 def encode(input_data: pd.DataFrame, schema: BinaryClassificationSchema, encoder=None) -> pd.DataFrame:
-    # encodings = []
-    # to_be_dropped = []
-    # cat_features = schema.categorical_features
-    # if not cat_features:
-    #     return input_data
-    # for f in cat_features:
-    #     if f not in input_data.columns:
-    #         continue
-    #     number_of_allowed_values = len(schema.allowed_categorical_values[f])
-    #     if number_of_allowed_values == 2:
-    #         encoding = pd.DataFrame(pd.get_dummies(input_data[f], prefix=f, drop_first=True))
-    #     else:
-    #         encoding = pd.get_dummies(input_data[f], prefix=f, drop_first=False)
-    #     to_be_dropped.append(f)
-    #     encodings.append(encoding)
-    # encodings.append(input_data)
-    # input_data = pd.concat(encodings, axis='columns')
-    # input_data.drop(to_be_dropped, axis=1, inplace=True)
-    # to_be_dropped = input_data.filter(like='_Missing').columns
-    # input_data.drop(to_be_dropped, axis=1, inplace=True)
-    # return input_data
     cat_features = schema.categorical_features
     if not cat_features:
         return input_data
@@ -88,7 +67,9 @@ def encode(input_data: pd.DataFrame, schema: BinaryClassificationSchema, encoder
         input_data = encoder.transform(input_data)
         return input_data
 
-    encoder = OneHotEncoder()
+
+
+    encoder = OneHotEncoder(top_categories=5)
     encoder.fit(input_data)
     input_data = encoder.transform(input_data)
     dump(encoder, paths.ENCODER_FILE)
