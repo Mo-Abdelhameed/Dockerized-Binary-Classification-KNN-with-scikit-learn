@@ -89,7 +89,7 @@ def run_batch_predictions() -> None:
     predictions_arr = Classifier.predict_with_model(model, x_test, return_probs=True)
     predictions_df = create_predictions_dataframe(
         predictions_arr,
-        data_schema.target_classes,
+        model.model.classes_,
         'prediction',
         test_data[data_schema.id],
         data_schema.id,
