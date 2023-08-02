@@ -70,8 +70,11 @@ def run_batch_predictions() -> None:
                 x_test = stage(x_test)
         elif column == 'schema':
             if stage.__name__ == 'normalize':
-                scaler = load(paths.SCALER_FILE)
-                x_test = normalize(x_test, data_schema, scaler)
+                try:
+                    scaler = load(paths.SCALER_FILE)
+                    x_test = normalize(x_test, data_schema, scaler)
+                except:
+                     pass
             elif stage.__name__ == 'encode':
                 x_test = stage(x_test, data_schema, encoder='predict')
             else:
