@@ -2,11 +2,11 @@ import os
 import numpy as np
 import pandas as pd
 from typing import Any, Dict
-from src.schema.data_schema import BinaryClassificationSchema, load_json_data_schema
+from schema.data_schema import BinaryClassificationSchema, load_json_data_schema
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import zscore
 from joblib import dump
-from src.config import paths
+from config import paths
 
 
 def impute_numeric(input_data: pd.DataFrame, column: Any, value='median') -> pd.DataFrame:

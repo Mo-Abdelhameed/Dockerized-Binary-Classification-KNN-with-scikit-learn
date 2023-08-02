@@ -1,6 +1,6 @@
 from typing import List
-from src.schema.data_schema import BinaryClassificationSchema
-from src.preprocessing.preprocess import *
+from schema.data_schema import BinaryClassificationSchema
+from preprocessing.preprocess import *
 from scipy.stats import shapiro
 
 
