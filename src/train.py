@@ -1,3 +1,4 @@
+import os
 from KNN_Classifier import Classifier
 from utils import read_csv_in_directory
 from config import paths
@@ -36,6 +37,8 @@ def run_training():
                     x_train = stage(x_train, column)
         model = Classifier()
         model.fit(x_train, y_train)
+        if not os.path.exists(paths.PREDICTOR_DIR_PATH):
+            os.makedirs(paths.PREDICTOR_DIR_PATH)
         model.save(paths.PREDICTOR_DIR_PATH)
         logger.info('Model saved!')
 
