@@ -21,8 +21,6 @@ TRAIN_DIR = os.path.join(DATA_DIR, "training")
 # Path to test directory inside data directory
 TEST_DIR = os.path.join(DATA_DIR, "testing")
 
-
-
 # Path to model directory
 MODEL_PATH = os.path.join(MODEL_INPUTS_OUTPUTS, "model")
 # Path to artifacts directory inside model directory
@@ -45,6 +43,7 @@ OUTPUT_DIR = os.path.join(MODEL_INPUTS_OUTPUTS, "outputs")
 PREDICTIONS_DIR = os.path.join(OUTPUT_DIR, "predictions")
 # Name of the file containing the predictions
 PREDICTIONS_FILE_PATH = os.path.join(PREDICTIONS_DIR, "predictions.csv")
+
 # Path to HPT results directory inside outputs directory
 HPT_OUTPUTS_DIR = os.path.join(OUTPUT_DIR, "hpt_outputs")
 
