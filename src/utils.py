@@ -78,7 +78,7 @@ def read_csv_in_directory(file_dir_path: str) -> pd.DataFrame:
         raise ValueError(f"Multiple CSV files found in directory {file_dir_path}.")
 
     csv_file_path = os.path.join(file_dir_path, csv_files[0])
-    df = pd.read_csv(csv_file_path)
+    df = pd.read_csv(csv_file_path, na_values=['?'])
     return df
 
 
