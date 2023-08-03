@@ -53,7 +53,7 @@ def run_training(
                     x_train, y_train = stage(x_train, column, target=y_train)
                 else:
                     x_train = stage(x_train, column)
-        x_train, y_train = handle_class_imbalance(x_train, y_train)
+        # x_train, y_train = handle_class_imbalance(x_train, y_train)
         X_train, X_test, Y_train, Y_test = train_test_split(x_train, y_train, test_size=0.1)
         best_score = 0
         for i in range(1, 30, 2):
