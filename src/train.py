@@ -5,21 +5,34 @@ from config import paths
 from logger import get_logger, log_error
 from schema.data_schema import load_json_data_schema, save_schema
 from preprocessing.pipeline import create_pipeline
-from preprocessing.preprocess import percentage_of_missing_values
+
 
 logger = get_logger(task_name="train")
 
 
-def run_training():
+def run_training(
+        input_schema_dir: str = paths.INPUT_SCHEMA_DIR,
+        saved_schema_dir_path: str = paths.SAVED_SCHEMA_DIR_PATH,
+        model_config_file_path: str = paths.MODEL_CONFIG_FILE_PATH,
+        train_dir: str = paths.TRAIN_DIR,
+        preprocessing_config_file_path: str = paths.PREPROCESSING_CONFIG_FILE_PATH,
+        preprocessing_dir_path: str = paths.PREPROCESSING_DIR_PATH,
+        predictor_dir_path: str = paths.PREDICTOR_DIR_PATH,
+        default_hyperparameters_file_path: str = paths.DEFAULT_HYPERPARAMETERS_FILE_PATH,
+        run_tuning: bool = False,
+        hpt_specs_file_path: str = paths.HPT_CONFIG_FILE_PATH,
+        hpt_results_dir_path: str = paths.HPT_OUTPUTS_DIR,
+        explainer_config_file_path: str = paths.EXPLAINER_CONFIG_FILE_PATH,
+        explainer_dir_path: str = paths.EXPLAINER_DIR_PATH,):
     try:
         logger.info("Starting training...")
 
         logger.info("Loading and saving schema...")
-        data_schema = load_json_data_schema(paths.INPUT_SCHEMA_DIR)
-        save_schema(schema=data_schema, save_dir_path=paths.SAVED_SCHEMA_DIR_PATH)
+        data_schema = load_json_data_schema(input_schema_dir)
+        save_schema(schema=data_schema, save_dir_path=saved_schema_dir_path)
 
         logger.info("Loading training data...")
-        train_data = read_csv_in_directory(paths.TRAIN_DIR)
+        train_data = read_csv_in_directory(train_dir)
         features = data_schema.features
         target = data_schema.target
         x_train = train_data[features]
@@ -37,9 +50,9 @@ def run_training():
                     x_train = stage(x_train, column)
         model = Classifier()
         model.fit(x_train, y_train)
-        if not os.path.exists(paths.PREDICTOR_DIR_PATH):
-            os.makedirs(paths.PREDICTOR_DIR_PATH)
-        model.save(paths.PREDICTOR_DIR_PATH)
+        if not os.path.exists(predictor_dir_path):
+            os.makedirs(predictor_dir_path)
+        model.save(predictor_dir_path)
         logger.info('Model saved!')
 
     except Exception as exc:
