@@ -24,7 +24,7 @@ def run_training():
         target = data_schema.target
         x_train = train_data[features]
         y_train = train_data[target]
-        pipeline = create_pipeline(x_train, data_schema)
+        pipeline = create_pipeline(data_schema)
         for stage, column in pipeline:
             if column is None:
                 x_train = stage(x_train)

@@ -1,15 +1,13 @@
 from typing import List
 from schema.data_schema import BinaryClassificationSchema
 from preprocessing.preprocess import *
-from scipy.stats import shapiro
 
 
-def create_pipeline(input_data: pd.DataFrame, schema: BinaryClassificationSchema) -> List[Any]:
+def create_pipeline(schema: BinaryClassificationSchema) -> List[Any]:
     """
         Creates pipeline of preprocessing steps
 
         Args:
-            input_data (pd.Dataframe): Dataframe of input data.
             schema (BinaryClassificationSchema): BinaryClassificationSchema object carrying data about the schema
         Returns:
             A list of tuples containing the functions to be executed in the pipeline on a certain column
@@ -32,3 +30,27 @@ def create_pipeline(input_data: pd.DataFrame, schema: BinaryClassificationSchema
     pipeline.append((encode, 'schema'))
 
     return pipeline
+
+
+def run_testing_pipeline(data: pd.DataFrame, data_schema: BinaryClassificationSchema, pipeline: List):
+    for stage, column in pipeline:
+        if column is None:
+            data = stage(data)
+        elif column == 'schema':
+            if stage.__name__ == 'normalize':
+                try:
+                    scaler = load(paths.SCALER_FILE)
+                    data = normalize(data, data_schema, scaler)
+                except:
+                     pass
+            elif stage.__name__ == 'encode':
+                data = stage(data, data_schema, encoder='predict')
+            else:
+                data = stage(data, data_schema)
+        else:
+            if stage.__name__ == 'remove_outliers_zscore':
+                continue
+            else:
+                data = stage(data, column)
+    return data
+

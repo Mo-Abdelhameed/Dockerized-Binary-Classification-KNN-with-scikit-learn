@@ -1,8 +1,6 @@
 import os
-from typing import Dict, List, Tuple
-
 import joblib
-
+from typing import Dict, List, Tuple
 from data_models.schema_validator import validate_schema_dict
 from utils import read_json_as_dict
 
@@ -385,6 +383,5 @@ def load_saved_schema(save_dir_path: str) -> BinaryClassificationSchema:
     """
     file_path = os.path.join(save_dir_path, SCHEMA_FILE_NAME)
     if not os.path.exists(file_path):
-        print("no such file")
         raise FileNotFoundError(f"No such file or directory: '{file_path}'")
     return joblib.load(file_path)

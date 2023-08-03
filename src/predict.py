@@ -2,13 +2,12 @@ import numpy as np
 import pandas as pd
 from typing import List
 from config import paths
-from utils import read_csv_in_directory, read_json_as_dict, save_dataframe_as_csv
+from utils import read_csv_in_directory, save_dataframe_as_csv
 from logger import get_logger
 from KNN_Classifier import Classifier
-from preprocessing.pipeline import create_pipeline
-from schema.data_schema import load_json_data_schema, load_saved_schema
-from joblib import load
-from preprocessing.preprocess import normalize
+from preprocessing.pipeline import create_pipeline, run_testing_pipeline
+from schema.data_schema import load_saved_schema
+
 
 logger = get_logger(task_name="predict")
 
@@ -61,30 +60,11 @@ def run_batch_predictions() -> None:
     test_data = read_csv_in_directory(paths.TEST_DIR)
     data_schema = load_saved_schema(paths.SAVED_SCHEMA_DIR_PATH)
     model = Classifier.load(paths.PREDICTOR_DIR_PATH)
-    pipeline = create_pipeline(test_data, data_schema)
+    pipeline = create_pipeline(data_schema)
     features = data_schema.features
     x_test = test_data[features]
     logger.info("Transforming the data...")
-    for stage, column in pipeline:
-        if column is None:
-                x_test = stage(x_test)
-        elif column == 'schema':
-            if stage.__name__ == 'normalize':
-                try:
-                    scaler = load(paths.SCALER_FILE)
-                    x_test = normalize(x_test, data_schema, scaler)
-                except:
-                     pass
-            elif stage.__name__ == 'encode':
-                x_test = stage(x_test, data_schema, encoder='predict')
-            else:
-                x_test = stage(x_test, data_schema)
-        else:
-            if stage.__name__ == 'remove_outliers_zscore':
-                    x_test, _ = stage(x_test, column)
-            else:
-                    x_test = stage(x_test, column)
-
+    x_test = run_testing_pipeline(x_test, data_schema, pipeline)
     logger.info("Making predictions...")
     predictions_arr = Classifier.predict_with_model(model, x_test, return_probs=True)
     predictions_df = create_predictions_dataframe(
@@ -103,5 +83,5 @@ def run_batch_predictions() -> None:
 
     logger.info("Batch predictions completed successfully")
 
-
-run_batch_predictions()
+if __name__ == "__main__":
+    run_batch_predictions()
