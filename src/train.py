@@ -6,6 +6,8 @@ from logger import get_logger, log_error
 from schema.data_schema import load_json_data_schema, save_schema
 from preprocessing.pipeline import create_pipeline
 from preprocessing.preprocess import handle_class_imbalance
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import f1_score
 
 
 logger = get_logger(task_name="train")
@@ -50,7 +52,16 @@ def run_training(
                 else:
                     x_train = stage(x_train, column)
         x_train, y_train = handle_class_imbalance(x_train, y_train)
-        model = Classifier()
+        X_train, X_test, Y_train, Y_test = train_test_split(x_train, Y_train, test_size=0.1)
+        best_score = 0
+        for i in range(1, 30, 2):
+            model = Classifier(n_neighbors=i)
+            model.fit(X_train, Y_train)
+            predictions = model.predict(X_test)
+            score = f1_score(Y_test, predictions)
+            if score > best_score:
+                best_score = score
+                best_n = i
         model.fit(x_train, y_train)
         if not os.path.exists(predictor_dir_path):
             os.makedirs(predictor_dir_path)
