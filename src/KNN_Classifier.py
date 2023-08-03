@@ -23,7 +23,7 @@ class Classifier:
 
     def __init__(self,
                  n_neighbors: Optional[int] = 13,
-                 weights: Optional[str] = 'distance'
+                 weights: Optional[str] = 'uniform'
                  ):
         """Construct a new Random Forest binary classifier.
 
