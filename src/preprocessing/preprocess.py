@@ -1,13 +1,14 @@
 import os
 import numpy as np
 import pandas as pd
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 from schema.data_schema import BinaryClassificationSchema, load_json_data_schema
 from sklearn.preprocessing import StandardScaler
 from feature_engine.encoding import OneHotEncoder
 from scipy.stats import zscore
 from joblib import dump, load
 from config import paths
+from imblearn.over_sampling import SMOTE
 
 
 def impute_numeric(input_data: pd.DataFrame, column: Any, value='median', schema: BinaryClassificationSchema = None, target: pd.Series = None) -> pd.DataFrame:
@@ -128,4 +129,32 @@ def remove_outliers_iqr(input_data: pd.DataFrame, column: str) -> pd.DataFrame:
     condition = (input_data[column] > upper) | (input_data[column] < lower)
     return input_data[~condition]
 
+
+def handle_class_imbalance(
+    transformed_data: pd.DataFrame, transformed_labels: pd.Series
+) -> Tuple[pd.DataFrame, pd.Series]:
+    """
+    Handle class imbalance using SMOTE.
+
+    Args:
+        transformed_data (pd.DataFrame): The transformed data.
+        transformed_labels (pd.Series): The transformed labels.
+        random_state (int): The random state seed for reproducibility. Defaults to 0.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.Series]: A tuple containing the balanced data and
+            balanced labels.
+    """
+    # Adjust k_neighbors parameter for SMOTE
+    # set k_neighbors to be the smaller of two values:
+    #       1 and,
+    #       the number of instances in the minority class minus one
+    k_neighbors = min(
+        1, sum(transformed_labels == min(transformed_labels.value_counts().index)) - 1
+    )
+    smote = SMOTE(k_neighbors=k_neighbors, random_state=0)
+    balanced_data, balanced_labels = smote.fit_resample(
+        transformed_data, transformed_labels
+    )
+    return balanced_data, balanced_labels
 

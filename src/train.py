@@ -5,6 +5,7 @@ from config import paths
 from logger import get_logger, log_error
 from schema.data_schema import load_json_data_schema, save_schema
 from preprocessing.pipeline import create_pipeline
+from preprocessing.preprocess import handle_class_imbalance
 
 
 logger = get_logger(task_name="train")
@@ -48,6 +49,7 @@ def run_training(
                     x_train, y_train = stage(x_train, column, target=y_train)
                 else:
                     x_train = stage(x_train, column)
+        x_train, y_train = handle_class_imbalance(x_train, y_train)
         model = Classifier()
         model.fit(x_train, y_train)
         if not os.path.exists(predictor_dir_path):
