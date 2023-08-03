@@ -52,7 +52,7 @@ def run_training(
                 else:
                     x_train = stage(x_train, column)
         x_train, y_train = handle_class_imbalance(x_train, y_train)
-        X_train, X_test, Y_train, Y_test = train_test_split(x_train, Y_train, test_size=0.1)
+        X_train, X_test, Y_train, Y_test = train_test_split(x_train, y_train, test_size=0.1)
         best_score = 0
         for i in range(1, 30, 2):
             model = Classifier(n_neighbors=i)
@@ -62,6 +62,7 @@ def run_training(
             if score > best_score:
                 best_score = score
                 best_n = i
+        model = Classifier(n_neighbors=best_n)
         model.fit(x_train, y_train)
         if not os.path.exists(predictor_dir_path):
             os.makedirs(predictor_dir_path)
