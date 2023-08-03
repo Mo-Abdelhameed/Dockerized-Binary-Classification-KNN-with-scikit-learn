@@ -58,7 +58,7 @@ def run_training(
             model = Classifier(n_neighbors=i)
             model.fit(X_train, Y_train)
             predictions = model.predict(X_test)
-            score = f1_score(Y_test, predictions)
+            score = f1_score(Y_test, predictions, pos_label=data_schema.target_classes[0])
             if score > best_score:
                 best_score = score
                 best_n = i
