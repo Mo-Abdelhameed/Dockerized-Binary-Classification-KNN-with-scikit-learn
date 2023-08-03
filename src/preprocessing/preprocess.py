@@ -69,7 +69,7 @@ def encode(input_data: pd.DataFrame, schema: BinaryClassificationSchema, encoder
 
 
 
-    encoder = OneHotEncoder(top_categories=7)
+    encoder = OneHotEncoder(top_categories=3)
     encoder.fit(input_data)
     input_data = encoder.transform(input_data)
     dump(encoder, paths.ENCODER_FILE)
