@@ -8,6 +8,7 @@ from preprocessing.pipeline import create_pipeline
 from preprocessing.preprocess import handle_class_imbalance
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
+from utils import set_seeds
 
 
 logger = get_logger(task_name="train")
@@ -29,6 +30,7 @@ def run_training(
         explainer_dir_path: str = paths.EXPLAINER_DIR_PATH,):
     try:
         logger.info("Starting training...")
+        set_seeds(seed_value=123)
 
         logger.info("Loading and saving schema...")
         data_schema = load_json_data_schema(input_schema_dir)
@@ -54,19 +56,19 @@ def run_training(
         x_train, y_train = handle_class_imbalance(x_train, y_train)
         X_train, X_test, Y_train, Y_test = train_test_split(x_train, y_train, test_size=0.1)
         best_score = 0
-        # for i in range(1, 30, 2):
-        #     model = Classifier(n_neighbors=i)
-        #     model.fit(X_train, Y_train)
-        #     predictions = model.predict(X_test)
-        #     try:
-        #         score = f1_score(Y_test, predictions)
-        #     except ValueError:
-        #         score = f1_score(Y_test, predictions, pos_label=data_schema.target_classes[1])
-        #     if score > best_score:
-        #         best_score = score
-        #         best_n = i
-        # model = Classifier(n_neighbors=best_n)
-        model = Classifier()
+        for i in range(1, 30, 2):
+            model = Classifier(n_neighbors=i)
+            model.fit(X_train, Y_train)
+            predictions = model.predict(X_test)
+            try:
+                score = f1_score(Y_test, predictions)
+            except ValueError:
+                score = f1_score(Y_test, predictions, pos_label=data_schema.target_classes[1])
+            if score > best_score:
+                best_score = score
+                best_n = i
+        model = Classifier(n_neighbors=best_n)
+        # model = Classifier()
         model.fit(x_train, y_train)
         if not os.path.exists(predictor_dir_path):
             os.makedirs(predictor_dir_path)
