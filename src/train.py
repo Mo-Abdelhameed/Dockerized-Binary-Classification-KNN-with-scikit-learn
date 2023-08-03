@@ -54,21 +54,21 @@ def run_training(
                 else:
                     x_train = stage(x_train, column)
         X_train, X_test, Y_train, Y_test = train_test_split(x_train, y_train, test_size=0.1)
-        best_score = 0
-        for i in range(1, 30, 2):
-            model = Classifier(n_neighbors=i)
-            model.fit(X_train, Y_train)
-            predictions = model.predict(X_test)
-            try:
-                score = f1_score(Y_test, predictions)
-            except ValueError:
-                score = f1_score(Y_test, predictions, pos_label=data_schema.target_classes[1])
-            if score > best_score:
-                best_score = score
-                best_n = i
-        print(best_score)
-        model = Classifier(n_neighbors=best_n)
-        # model = Classifier()
+        # best_score = 0
+        # for i in range(1, 30, 2):
+        #     model = Classifier(n_neighbors=i)
+        #     model.fit(X_train, Y_train)
+        #     predictions = model.predict(X_test)
+        #     try:
+        #         score = f1_score(Y_test, predictions)
+        #     except ValueError:
+        #         score = f1_score(Y_test, predictions, pos_label=data_schema.target_classes[1])
+        #     if score > best_score:
+        #         best_score = score
+        #         best_n = i
+        # print(best_score)
+        # model = Classifier(n_neighbors=best_n)
+        model = Classifier()
         model.fit(x_train, y_train)
         if not os.path.exists(predictor_dir_path):
             os.makedirs(predictor_dir_path)

@@ -22,8 +22,10 @@ class Classifier:
     model_name = 'knn_binary_classifier'
 
     def __init__(self,
-                 n_neighbors: Optional[int] = 13,
-                 weights: Optional[str] = 'uniform'
+                 n_neighbors: Optional[int] = 5,
+                 weights: Optional[str] = 'uniform',
+                 p: Optional[int] = 2,
+                 leaf_size: Optional[int] = 5
                  ):
         """Construct a new Random Forest binary classifier.
 
@@ -40,12 +42,14 @@ class Classifier:
 
         self.n_neighbors = n_neighbors
         self.weights = weights
+        self.p = p
+        self.leaf_size = leaf_size
         self._is_trained = False
         self.model = self.build_model()
 
     def build_model(self) -> KNeighborsClassifier:
         """Build a new KNN binary classifier."""
-        return KNeighborsClassifier(n_neighbors=self.n_neighbors, weights=self.weights)
+        return KNeighborsClassifier(n_neighbors=self.n_neighbors, weights=self.weights, p=self.p, leaf_size=self.leaf_size)
 
     def fit(self, train_input: pd.DataFrame, train_target: pd.DataFrame):
         """Fit the  KNN binary classifier to the training data.
