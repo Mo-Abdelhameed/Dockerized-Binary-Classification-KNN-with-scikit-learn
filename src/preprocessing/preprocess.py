@@ -92,7 +92,7 @@ def normalize(input_data: pd.DataFrame, schema: BinaryClassificationSchema, scal
         return input_data
     numeric_features = [f for f in numeric_features if f in input_data.columns]
     if scaler is None:
-        scaler = MinMaxScaler()
+        scaler = StandardScaler()
         scaler.fit(input_data[numeric_features])
         dump(scaler, paths.SCALER_FILE)
     input_data[numeric_features] = scaler.transform(input_data[numeric_features])
