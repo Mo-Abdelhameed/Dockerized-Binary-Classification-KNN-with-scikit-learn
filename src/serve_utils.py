@@ -22,9 +22,7 @@ class ModelResources:
         self,
         saved_schema_dir_path: str,
         model_config_file_path: str,
-        preprocessing_dir_path: str,
         predictor_dir_path: str,
-        explainer_dir_path: str,
     ):
         self.data_schema = load_saved_schema(saved_schema_dir_path)
         self.model_config = read_json_as_dict(model_config_file_path)

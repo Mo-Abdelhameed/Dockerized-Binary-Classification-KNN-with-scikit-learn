@@ -10,7 +10,19 @@ from config import paths
 from imblearn.over_sampling import SMOTE
 
 
-def impute_numeric(input_data: pd.DataFrame, column: Any, value='median', schema: BinaryClassificationSchema = None, target: pd.Series = None) -> pd.DataFrame:
+def impute_numeric(input_data: pd.DataFrame, column: str, value='median') -> pd.DataFrame:
+    """
+    Imputes the missing numeric values in the given dataframe column based on the parameter 'value'.
+
+    Args:
+        input_data (pd.DataFrame): The data to be imputed.
+        column (str): The name of the column.
+        value (str): The value to use when imputing the column. Can only be one of ['mean', 'median', 'mode']
+
+    Returns:
+        A dataframe after imputation
+    """
+
     if column not in input_data.columns:
         return input_data
     if value == 'mean':
@@ -25,10 +37,30 @@ def impute_numeric(input_data: pd.DataFrame, column: Any, value='median', schema
 
 
 def indicate_missing_values(input_data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Replaces empty strings with NaN in a dataframe.
+
+    Args:
+        input_data (ps.DataFrame): The dataframe to be processed.
+
+    Returns:
+        A dataframe after replacing empty strings with NaN.
+    """
     return input_data.replace("", np.nan)
 
 
-def impute_categorical(input_data: pd.DataFrame, column: Any) -> pd.DataFrame:
+def impute_categorical(input_data: pd.DataFrame, column: str) -> pd.DataFrame:
+    """
+    Imputes the missing categorical values in the given dataframe column. If the percentage of missing values in the column is greater than 0.1, imputation is done using the word "Missing". 
+    Otherwise, the mode is used.
+
+    Args:
+        input_data (pd.DataFrame): The dataframe to be processed.
+        column (str): The name of the column to be imputed.
+
+    Returns:
+        A dataframe after imputation
+    """
     if column not in input_data.columns:
         return input_data
     perc = percentage_of_missing_values(input_data)
@@ -40,24 +72,71 @@ def impute_categorical(input_data: pd.DataFrame, column: Any) -> pd.DataFrame:
 
 
 def drop_all_nan_features(input_data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Drops columns that only contain NaN values.
+
+    Args:
+        input_data (pd.DataFrame): The dataframe to be processed.
+    
+    Returns: 
+        A dataframe after dropping NaN columns
+    """
     return input_data.dropna(axis=1, how='all')
 
 
 def percentage_of_missing_values(input_data: pd.DataFrame) -> Dict:
+    """
+    Calculates the percentage of missing values in each column of a given dataframe.
+
+    Args:
+        input_data (pd.DataFrame): The dataframe to calculate the percentage of missing values on.
+    
+    Returns:
+        A dictionary of column names as keys and the percentage of missing values as values.
+    """
     columns_with_missing_values = input_data.columns[input_data.isna().any()]
     return (input_data[columns_with_missing_values].isna().mean().sort_values(ascending=False) * 100).to_dict()
 
 
 def drop_constant_features(input_data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Drops columns that contain only one value.
+
+    Args:
+        input_data (pd.DataFrame): The dataframe to be processed.
+    
+    Returns: 
+        A dataframe after dropping constant columns
+    """
     constant_columns = input_data.columns[input_data.nunique() == 1]
     return input_data.drop(columns=constant_columns)
 
 
 def drop_duplicate_features(input_data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Drops columns that are exactly the same and keeps only one of them.
+
+    Args:
+        input_data (pd.DataFrame): The dataframe to be processed.
+    
+    Returns: 
+        A dataframe after dropping duplicated columns
+    """
     return input_data.T.drop_duplicates().T
 
 
 def encode(input_data: pd.DataFrame, schema: BinaryClassificationSchema, encoder=None) -> pd.DataFrame:
+    """
+    Performs one-hot encoding for the top 3 categories on categorical features of a given dataframe.
+
+    Args:
+        input_data (pd.DataFrame): The dataframe to be processed.
+        schema (BinaryClassificationSchema): The schema of the given data.
+        encoder: Indicates if instantiating a new encoder is required or not. 
+    
+    Returns: 
+        A dataframe after performing one-hot encoding
+    """
     cat_features = schema.categorical_features
     if not cat_features:
         return input_data
@@ -65,8 +144,6 @@ def encode(input_data: pd.DataFrame, schema: BinaryClassificationSchema, encoder
         encoder = load(paths.ENCODER_FILE)
         input_data = encoder.transform(input_data)
         return input_data
-
-
 
     encoder = OneHotEncoder(top_categories=3)
     encoder.fit(input_data)
@@ -76,16 +153,33 @@ def encode(input_data: pd.DataFrame, schema: BinaryClassificationSchema, encoder
 
 
 def drop_mostly_missing_columns(input_data: pd.DataFrame, thresh=0.6) -> pd.DataFrame:
+    """
+    Drops columns in which NaN values exceeds a certain threshold.
+
+    Args:
+        input_data: (pd.DataFrame): the data to be processed.
+        thresh (float): The threshold to use.
+
+    Returns:
+        A dataframe after dropping the specified columns.
+    """
     threshold = int(thresh * len(input_data))
     return input_data.dropna(axis=1, thresh=threshold)
 
 
-def cast_data(input_data: pd.DataFrame):
-    input_data = input_data.convert_dtypes()
-    return input_data
-
-
 def normalize(input_data: pd.DataFrame, schema: BinaryClassificationSchema, scaler=None) -> pd.DataFrame:
+    """
+    Performs z-score normalization on numeric features of a given dataframe.
+
+    Args:
+        input_data (pd.DataFrame): The data to be normalized.
+        schema (BinaryClassificationSchema): The schema of the given data.
+        scaler: Indicated if a new scaler needs to be instantiated.
+
+    Returns:
+        A dataframe after z-score normalization 
+    """
+
     input_data = input_data.copy()
     numeric_features = schema.numeric_features
     if not numeric_features:
@@ -100,6 +194,15 @@ def normalize(input_data: pd.DataFrame, schema: BinaryClassificationSchema, scal
 
 
 def remove_outliers_zscore(input_data: pd.DataFrame, column: str, target: pd.Series = None) -> pd.DataFrame:
+    """
+    Removes rows that have been identified as outliers using the z-score method according to a given column.
+
+    Args:
+        input_data (pd.DataFrame): The dataframe to be processed.
+        column (str): The name of the column.
+        target (pd.Series): The targets series associated with the input dataframe.
+    """
+
     if column not in input_data.columns:
         return input_data, target
     input_data[column] = input_data[column].astype(np.float64)
@@ -114,18 +217,6 @@ def remove_outliers_zscore(input_data: pd.DataFrame, column: str, target: pd.Ser
             return input_data[condition], None
     else:
         return input_data, target
-
-
-def remove_outliers_iqr(input_data: pd.DataFrame, column: str) -> pd.DataFrame:
-    if column not in input_data.columns:
-        return input_data
-    q1 = input_data[column].quantile(0.25)
-    q3 = input_data[column].quantile(0.75)
-    iqr = q3 - q1
-    lower = q1 - 1.5 * iqr
-    upper = q3 + 1.5 * iqr
-    condition = (input_data[column] > upper) | (input_data[column] < lower)
-    return input_data[~condition]
 
 
 def handle_class_imbalance(
