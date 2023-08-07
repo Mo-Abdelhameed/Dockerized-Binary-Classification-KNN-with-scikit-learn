@@ -5,7 +5,6 @@ from config import paths
 from logger import get_logger, log_error
 from schema.data_schema import load_json_data_schema, save_schema
 from preprocessing.pipeline import create_pipeline
-from preprocessing.preprocess import handle_class_imbalance
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
 from utils import set_seeds
@@ -17,20 +16,12 @@ logger = get_logger(task_name="train")
 def run_training(
         input_schema_dir: str = paths.INPUT_SCHEMA_DIR,
         saved_schema_dir_path: str = paths.SAVED_SCHEMA_DIR_PATH,
-        model_config_file_path: str = paths.MODEL_CONFIG_FILE_PATH,
         train_dir: str = paths.TRAIN_DIR,
-        preprocessing_config_file_path: str = paths.PREPROCESSING_CONFIG_FILE_PATH,
-        preprocessing_dir_path: str = paths.PREPROCESSING_DIR_PATH,
         predictor_dir_path: str = paths.PREDICTOR_DIR_PATH,
-        default_hyperparameters_file_path: str = paths.DEFAULT_HYPERPARAMETERS_FILE_PATH,
-        run_tuning: bool = False,
-        hpt_specs_file_path: str = paths.HPT_CONFIG_FILE_PATH,
-        hpt_results_dir_path: str = paths.HPT_OUTPUTS_DIR,
-        explainer_config_file_path: str = paths.EXPLAINER_CONFIG_FILE_PATH,
-        explainer_dir_path: str = paths.EXPLAINER_DIR_PATH,):
+       ):
     try:
         logger.info("Starting training...")
-        # set_seeds(seed_value=123)
+        set_seeds(seed_value=123)
 
         logger.info("Loading and saving schema...")
         data_schema = load_json_data_schema(input_schema_dir)
@@ -54,21 +45,19 @@ def run_training(
                 else:
                     x_train = stage(x_train, column)
         X_train, X_test, Y_train, Y_test = train_test_split(x_train, y_train, test_size=0.1)
-        # best_score = 0
-        # for i in range(1, 30, 2):
-        #     model = Classifier(n_neighbors=i)
-        #     model.fit(X_train, Y_train)
-        #     predictions = model.predict(X_test)
-        #     try:
-        #         score = f1_score(Y_test, predictions)
-        #     except ValueError:
-        #         score = f1_score(Y_test, predictions, pos_label=data_schema.target_classes[1])
-        #     if score > best_score:
-        #         best_score = score
-        #         best_n = i
-        # print(best_score)
-        # model = Classifier(n_neighbors=best_n)
-        model = Classifier()
+        best_score = 0
+        for i in range(1, 30, 2):
+            model = Classifier(n_neighbors=i)
+            model.fit(X_train, Y_train)
+            predictions = model.predict(X_test)
+            try:
+                score = f1_score(Y_test, predictions)
+            except ValueError:
+                score = f1_score(Y_test, predictions, pos_label=data_schema.target_classes[1])
+            if score > best_score:
+                best_score = score
+                best_n = i
+        model = Classifier(n_neighbors=best_n)
         model.fit(x_train, y_train)
         if not os.path.exists(predictor_dir_path):
             os.makedirs(predictor_dir_path)

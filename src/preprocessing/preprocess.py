@@ -1,8 +1,7 @@
-import os
 import numpy as np
 import pandas as pd
 from typing import Any, Dict, Tuple
-from schema.data_schema import BinaryClassificationSchema, load_json_data_schema
+from schema.data_schema import BinaryClassificationSchema
 from sklearn.preprocessing import StandardScaler
 from feature_engine.encoding import OneHotEncoder
 from scipy.stats import zscore
@@ -26,7 +25,6 @@ def impute_numeric(input_data: pd.DataFrame, column: Any, value='median', schema
 
 
 def indicate_missing_values(input_data: pd.DataFrame) -> pd.DataFrame:
-    categorical_columns = input_data.select_dtypes(exclude=["number"]).columns.tolist()
     return input_data.replace("", np.nan)
 
 
@@ -88,16 +86,16 @@ def cast_data(input_data: pd.DataFrame):
 
 
 def normalize(input_data: pd.DataFrame, schema: BinaryClassificationSchema, scaler=None) -> pd.DataFrame:
+    input_data = input_data.copy()
     numeric_features = schema.numeric_features
     if not numeric_features:
         return input_data
-    numeric_features = list(set(numeric_features).intersection(input_data.columns))
+    numeric_features = [f for f in numeric_features if f in input_data.columns]
     if scaler is None:
-        scaler = StandardScaler()
-        input_data[numeric_features] = scaler.fit_transform(input_data[numeric_features])
+        scaler = MinMaxScaler()
+        scaler.fit(input_data[numeric_features])
         dump(scaler, paths.SCALER_FILE)
-    else:
-        input_data[numeric_features] = scaler.transform(input_data[numeric_features])
+    input_data[numeric_features] = scaler.transform(input_data[numeric_features])
     return input_data
 
 

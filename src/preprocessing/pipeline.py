@@ -1,7 +1,8 @@
+import os
 from typing import List
 from schema.data_schema import BinaryClassificationSchema
 from preprocessing.preprocess import *
-
+from config import paths
 
 def create_pipeline(schema: BinaryClassificationSchema) -> List[Any]:
     """
@@ -37,12 +38,9 @@ def run_testing_pipeline(data: pd.DataFrame, data_schema: BinaryClassificationSc
         if column is None:
             data = stage(data)
         elif column == 'schema':
-            if stage.__name__ == 'normalize':
-                try:
-                    scaler = load(paths.SCALER_FILE)
-                    data = normalize(data, data_schema, scaler)
-                except:
-                     pass
+            if stage.__name__ == 'normalize' and os.path.exists(paths.SCALER_FILE):
+                scaler = load(paths.SCALER_FILE)
+                data = normalize(data, data_schema, scaler)
             elif stage.__name__ == 'encode':
                 data = stage(data, data_schema, encoder='predict')
             else:
