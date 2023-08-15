@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import os
 from typing import Any, Dict, Tuple
 from schema.data_schema import BinaryClassificationSchema
 from sklearn.preprocessing import StandardScaler
@@ -140,15 +141,18 @@ def encode(input_data: pd.DataFrame, schema: BinaryClassificationSchema, encoder
     cat_features = schema.categorical_features
     if not cat_features:
         return input_data
-    if encoder is not None:
-        encoder = load(paths.ENCODER_FILE)
-        input_data = encoder.transform(input_data)
-        return input_data
+    try:
+        if encoder is not None and os.path.exists(paths.ENCODER_FILE):
+            encoder = load(paths.ENCODER_FILE)
+            input_data = encoder.transform(input_data)
+            return input_data
 
-    encoder = OneHotEncoder(top_categories=3)
-    encoder.fit(input_data)
-    input_data = encoder.transform(input_data)
-    dump(encoder, paths.ENCODER_FILE)
+        encoder = OneHotEncoder(top_categories=3)
+        encoder.fit(input_data)
+        input_data = encoder.transform(input_data)
+        dump(encoder, paths.ENCODER_FILE)
+    except ValueError:
+        logger.info('No categorical variables in the data. No encoding performed!')
     return input_data
 
 
